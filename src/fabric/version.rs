@@ -2,6 +2,7 @@ use std::{cmp, fmt, num::ParseIntError};
 
 /// A list of predicates with an `OR` relationship,
 /// e.g a range that is 1 `OR` 2 is `["1", "2"]`
+#[derive(PartialEq, Eq, Debug)]
 pub struct FabricVersionRange(Vec<FabricVersionPredicate>);
 
 impl FabricVersionRange {
@@ -43,8 +44,10 @@ impl FabricVersionRange {
 
 /// Space separated terms with an `AND` relationship,
 /// e.g a predicate that is greater than or equal to 1 `AND` less than 2 is `>=1 <2`
+#[derive(PartialEq, Eq, Debug)]
 pub struct FabricVersionPredicate(FabricVersionPredicateIn);
 
+#[derive(PartialEq, Eq, Debug)]
 enum FabricVersionPredicateIn {
     Terms(Vec<FabricVersionTerm>),
     Any,

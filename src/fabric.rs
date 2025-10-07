@@ -13,50 +13,47 @@ use crate::fabric::version::FabricVersionRange;
 
 /// A `fabric.mod.json` file.
 /// Contains metadata about a fabric mod.
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ModJson {
     pub schema_version: SchemaVersion,
     pub id: ModId,
     pub version: FabricVersion,
-    pub provides: Option<Vec<ModId>>,
-    pub environment: Option<Environment>,
-    pub jars: Option<Vec<JarPath>>,
+    #[serde(default)]
+    pub provides: Vec<ModId>,
+    #[serde(default)]
+    pub environment: Environment,
+    #[serde(default)]
+    pub jars: Vec<JarPath>,
 
-    pub entrypoints: (),
-    pub language_adapters: (),
-    pub mixins: (),
-
+    #[serde(default)]
     pub depends: HashMap<ModId, FabricVersionRange>,
+    #[serde(default)]
     pub recommends: HashMap<ModId, FabricVersionRange>,
+    #[serde(default)]
     pub suggests: HashMap<ModId, FabricVersionRange>,
+    #[serde(default)]
     pub breaks: HashMap<ModId, FabricVersionRange>,
+    #[serde(default)]
     pub conflicts: HashMap<ModId, FabricVersionRange>,
-
-    pub name: (),
-    pub description: (),
-    pub contact: (),
-    pub authors: (),
-    pub contributors: (),
-    pub license: (),
-    pub icon: (),
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq, Eq, Debug)]
 pub struct JarPath {
     pub file: PathBuf,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq, Eq, Debug, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Environment {
     Client,
     Server,
     #[serde(alias = "*")]
+    #[default]
     Any,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq, Eq, Debug)]
 #[serde(try_from = "u64")]
 pub struct SchemaVersion;
 
@@ -72,7 +69,7 @@ impl TryFrom<u64> for SchemaVersion {
     }
 }
 
-#[derive(Deserialize, PartialEq, Eq, Hash)]
+#[derive(Deserialize, PartialEq, Eq, Debug, Hash)]
 #[serde(try_from = "&str")]
 pub struct ModId(pub String);
 
@@ -157,4 +154,54 @@ pub enum Error {
     ModIdTooLong,
     #[error("invalid schema version is not 1")]
     InvalidSchemaVersion,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parse_mod_json() {
+        let s = r#"{
+            "schemaVersion": 1,
+            "id": "examplemod",
+            "version": "1.0.0-pre+build",
+            "name": "Example Mod",
+            "description": "Lorem ipsum dolor sit amet.",
+            "environment": "client",
+            "depends": {
+                "minecraft": "1.20.1"
+            },
+            "jars": [
+                {
+                    "file": "META-INF/jars/example.jar"
+                }
+            ]
+        }"#;
+        let v: ModJson = match serde_json::from_str(s) {
+            Ok(value) => value,
+            Err(e) => panic!("{e}"),
+        };
+        assert_eq!(
+            v,
+            ModJson {
+                schema_version: SchemaVersion,
+                id: ModId("examplemod".into()),
+                version: FabricVersion::parse("1.0.0-pre+build", false).unwrap(),
+                provides: vec![],
+                environment: Environment::Client,
+                jars: vec![JarPath {
+                    file: "META-INF/jars/example.jar".into()
+                }],
+                depends: HashMap::from([(
+                    ModId("minecraft".into()),
+                    FabricVersionRange::parse_single("1.20.1").unwrap()
+                )]),
+                recommends: Default::default(),
+                suggests: Default::default(),
+                breaks: Default::default(),
+                conflicts: Default::default(),
+            }
+        )
+    }
 }
