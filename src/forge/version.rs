@@ -66,20 +66,16 @@ impl ForgeVersionRange {
     pub fn parse(mut s: &str) -> Result<Self> {
         let mut terms = vec![];
 
-        if s.trim().is_empty() {
-            return Err(Error::Empty);
-        }
-
         loop {
             s = s.trim();
             let Some((version, rest)) = Self::parse_in(s)? else {
-                return Err(Error::Expected("list or version"));
+                break;
             };
             terms.push(version);
             s = rest.trim();
 
             if s.is_empty() {
-                break Ok(Self(terms));
+                break;
             }
 
             let Some(rest) = take_ch(s, ',') else {
@@ -87,6 +83,8 @@ impl ForgeVersionRange {
             };
             s = rest;
         }
+
+        Ok(Self(terms))
     }
 
     fn parse_in(input: &str) -> Result<Option<(ForgeVersionRangeIn, &str)>> {
@@ -544,13 +542,13 @@ mod test {
                 )
             ])
         );
+        assert_eq!(
+            ForgeVersionRange::parse("  ").unwrap(),
+            ForgeVersionRange(vec![])
+        );
         assert!(matches!(
             ForgeVersionRange::parse(" [ ] ").unwrap_err(),
             Error::EmptyList
-        ));
-        assert!(matches!(
-            ForgeVersionRange::parse("  ").unwrap_err(),
-            Error::Empty
         ));
         assert!(matches!(
             ForgeVersionRange::parse("[1.0)").unwrap_err(),

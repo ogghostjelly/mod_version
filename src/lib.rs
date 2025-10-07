@@ -1,2 +1,2 @@
-pub mod fabric_version;
-pub mod forge_version;
+pub mod fabric;
+pub mod forge;
