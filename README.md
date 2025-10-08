@@ -10,4 +10,4 @@ Library to parse version and dependency data from a Fabric or Forge mod, using t
 
 # Limitations
 
-The Forge `META-INF/mods.toml` parser does not take into account string substitution via the `properties` field.
+Currently, the parser for the Forge `META-INF/mods.toml` does not take into account string substitution via the `properties` field.
