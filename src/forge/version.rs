@@ -8,16 +8,16 @@ use std::{cmp, fmt, mem};
 /// `[1.0]` exact match
 /// `1.0`   same as [1.0,) or x >= 1.0
 /// `(,1.0],[1.2,)` x <= 1.0 OR x >= 1.2
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ForgeVersionRange(Vec<ForgeVersionRangeIn>);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum ForgeVersionRangeIn {
     Equal(ForgeVersion),
     Range(Bound, Bound),
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum Bound {
     Inclusive(Option<ForgeVersion>),
     Exclusive(Option<ForgeVersion>),
@@ -193,14 +193,69 @@ impl Bound {
     }
 }
 
+impl fmt::Display for ForgeVersionRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut iter = self.0.iter();
+        if let Some(range) = iter.next() {
+            write!(f, "{range}")?;
+        }
+        for range in iter {
+            write!(f, "{range}")?;
+        }
+        Ok(())
+    }
+}
+
+impl fmt::Display for ForgeVersionRangeIn {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ForgeVersionRangeIn::Equal(version) => write!(f, "[{version}]"),
+            ForgeVersionRangeIn::Range(lower, upper) => write!(f, "{lower},{upper:#}"),
+        }
+    }
+}
+
+impl fmt::Display for Bound {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn display(
+            f: &mut fmt::Formatter<'_>,
+            (open, close): (char, char),
+            version: &Option<ForgeVersion>,
+        ) -> fmt::Result {
+            if f.alternate() {
+                if let Some(version) = version {
+                    write!(f, "{version}")?;
+                }
+                write!(f, "{close}")
+            } else {
+                write!(f, "{open}")?;
+                if let Some(version) = version {
+                    write!(f, "{version}")?;
+                }
+                Ok(())
+            }
+        }
+
+        match self {
+            Bound::Inclusive(version) => display(f, ('[', ']'), version),
+            Bound::Exclusive(version) => display(f, ('(', ')'), version),
+        }
+    }
+}
+
 /// A ComparableVersion from Maven used by Forge mods.
 /// Based off of the spec described [here](https://cwiki.apache.org/confluence/display/MAVENOLD/Versioning) and the source code provided [here](https://maven.apache.org/ref/3.0/maven-artifact/xref/org/apache/maven/artifact/versioning/ComparableVersion.html).
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct ForgeVersion(Vec<Item>);
 
 impl fmt::Debug for ForgeVersion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ForgeVersion(")?;
+        write!(f, "ForgeVersion({self})")
+    }
+}
+
+impl fmt::Display for ForgeVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, item) in self.0.iter().enumerate() {
             if i != 0 {
                 write!(f, ".")?;
@@ -212,7 +267,7 @@ impl fmt::Debug for ForgeVersion {
                 Item::Null => write!(f, "<null>")?,
             }
         }
-        write!(f, ")")
+        Ok(())
     }
 }
 
@@ -254,7 +309,7 @@ impl PartialOrd for ForgeVersion {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum Item {
     String(String),
     Integer(u64),

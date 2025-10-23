@@ -2,7 +2,7 @@ use std::{cmp, fmt, num::ParseIntError};
 
 /// A list of predicates with an `OR` relationship,
 /// e.g a range that is 1 `OR` 2 is `["1", "2"]`
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FabricVersionRange(Vec<FabricVersionPredicate>);
 
 impl FabricVersionRange {
@@ -42,12 +42,25 @@ impl FabricVersionRange {
     }
 }
 
+impl fmt::Display for FabricVersionRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut iter = self.0.iter();
+        if let Some(x) = iter.next() {
+            write!(f, "{x}")?;
+        }
+        for x in iter {
+            write!(f, "|{x}")?;
+        }
+        Ok(())
+    }
+}
+
 /// Space separated terms with an `AND` relationship,
 /// e.g a predicate that is greater than or equal to 1 `AND` less than 2 is `>=1 <2`
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FabricVersionPredicate(FabricVersionPredicateIn);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum FabricVersionPredicateIn {
     Terms(Vec<FabricVersionTerm>),
     Any,
@@ -80,9 +93,27 @@ impl FabricVersionPredicate {
     }
 }
 
+impl fmt::Display for FabricVersionPredicate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.0 {
+            FabricVersionPredicateIn::Terms(terms) => {
+                let mut iter = terms.iter();
+                if let Some(x) = iter.next() {
+                    write!(f, "{x}")?;
+                }
+                for x in iter {
+                    write!(f, " {x}")?;
+                }
+                Ok(())
+            }
+            FabricVersionPredicateIn::Any => write!(f, "*"),
+        }
+    }
+}
+
 /// A single term in a fabric version range.
 /// Such as `>=1.2.3` or `<4.0.0`
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum FabricVersionTerm {
     Equal(FabricVersion),
     Greater(SemVer),
@@ -186,11 +217,25 @@ impl FabricVersionTerm {
     }
 }
 
+impl fmt::Display for FabricVersionTerm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FabricVersionTerm::Equal(version) => write!(f, "={version}"),
+            FabricVersionTerm::Greater(ver) => write!(f, ">{ver}"),
+            FabricVersionTerm::GreaterOrEqual(ver) => write!(f, ">={ver}"),
+            FabricVersionTerm::Less(ver) => write!(f, "<{ver}"),
+            FabricVersionTerm::LessOrEqual(ver) => write!(f, "<={ver}"),
+            FabricVersionTerm::Caret(ver) => write!(f, "^{ver}"),
+            FabricVersionTerm::Tilde(ver) => write!(f, "~{ver}"),
+        }
+    }
+}
+
 /// A version used by Fabric mods.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct FabricVersion(FabricVersionIn);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 enum FabricVersionIn {
     SemVer(SemVer),
     String(String),
@@ -227,6 +272,15 @@ impl cmp::PartialOrd for FabricVersion {
     }
 }
 
+impl fmt::Display for FabricVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.0 {
+            FabricVersionIn::SemVer(version) => write!(f, "{version}"),
+            FabricVersionIn::String(s) => write!(f, "{s}"),
+        }
+    }
+}
+
 /// An extended version of SemVer.
 /// See also [`FabricVersion`].
 #[derive(PartialEq, Eq, Clone)]
@@ -239,7 +293,12 @@ pub struct SemVer {
 
 impl fmt::Debug for SemVer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SemVer(")?;
+        write!(f, "SemVer({self})")
+    }
+}
+
+impl fmt::Display for SemVer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, x) in self.components.iter().enumerate() {
             if i != 0 {
                 write!(f, ".")?;
@@ -264,7 +323,6 @@ impl fmt::Debug for SemVer {
         if let Some(build) = &self.build {
             write!(f, "+{build}")?;
         }
-        write!(f, ")")?;
         Ok(())
     }
 }

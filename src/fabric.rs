@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, fmt, path::PathBuf};
 
 use serde::{
     Deserialize,
@@ -69,7 +69,7 @@ impl TryFrom<u64> for SchemaVersion {
     }
 }
 
-#[derive(Deserialize, PartialEq, Eq, Debug, Hash)]
+#[derive(Deserialize, PartialEq, Eq, Debug, Hash, Clone)]
 #[serde(try_from = "&str")]
 pub struct ModId(pub String);
 
@@ -82,6 +82,12 @@ impl TryFrom<&str> for ModId {
         } else {
             Err(Error::ModIdTooLong)
         }
+    }
+}
+
+impl fmt::Display for ModId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
