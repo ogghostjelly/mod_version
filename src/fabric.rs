@@ -18,6 +18,7 @@ use crate::fabric::version::FabricVersionRange;
 pub struct ModJson {
     pub schema_version: SchemaVersion,
     pub id: ModId,
+    pub name: Option<String>,
     pub version: FabricVersion,
     #[serde(default)]
     pub provides: Vec<ModId>,
@@ -196,6 +197,7 @@ mod test {
             ModJson {
                 schema_version: SchemaVersion,
                 id: ModId("examplemod".into()),
+                name: Some("Example Mod".into()),
                 version: FabricVersion::parse("1.0.0-pre+build", false).unwrap(),
                 provides: vec![],
                 environment: Environment::Client,
