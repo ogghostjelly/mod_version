@@ -25,7 +25,7 @@ pub struct Mod {
 /// `META-INF/mods.toml` before string substitution.
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct UnsubstitutedModsToml {
+pub struct UnsubstitutedForgeManifest {
     pub mods: Vec<UnsubstitutedMod>,
     pub dependencies: HashMap<ModId, Vec<Dependency>>,
 }
@@ -143,13 +143,13 @@ mod test {
             mandatory=true
             versionRange="[1.19,1.20)""#;
 
-        let v: UnsubstitutedModsToml = match toml::from_str(s) {
+        let v: UnsubstitutedForgeManifest = match toml::from_str(s) {
             Ok(value) => value,
             Err(e) => panic!("{e}"),
         };
         assert_eq!(
             v,
-            UnsubstitutedModsToml {
+            UnsubstitutedForgeManifest {
                 mods: vec![
                     UnsubstitutedMod {
                         mod_id: "examplemod".into(),
