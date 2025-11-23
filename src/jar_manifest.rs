@@ -1,26 +1,22 @@
-use std::collections::HashMap;
-
 use crate::forge::{self, version::ForgeVersion};
 
-pub fn parse(s: &str) -> Result<HashMap<&str, &str>, Error> {
-    let mut map = HashMap::new();
+pub fn parse(s: &str) -> impl Iterator<Item = Result<(&str, &str), Error>> {
+    let iter = s.lines();
 
-    for line in s.lines() {
-        let Some((k, v)) = line.split_once(':') else {
-            return Err(Error::MissingDelimeter);
-        };
-
-        map.insert(k, v.trim());
-    }
-
-    Ok(map)
+    iter.map(|line| match line.split_once(':') {
+        Some((k, v)) => Ok((k.trim(), v.trim())),
+        None => Err(Error::MissingDelimeter),
+    })
 }
 
 pub fn extract_implementation_version(s: &str) -> Result<ForgeVersion, Error> {
-    match parse(s)?.get("Implementation-Version") {
-        Some(s) => Ok(ForgeVersion::parse(s)?),
-        None => Err(Error::MissingImplementationVersion),
+    for line in parse(s) {
+        let (key, value) = line?;
+        if key == "Implementation-Version" {
+            return Ok(ForgeVersion::parse(value)?);
+        }
     }
+    Err(Error::MissingImplementationVersion)
 }
 
 #[derive(thiserror::Error, Debug)]

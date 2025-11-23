@@ -11,7 +11,7 @@ pub type ModId = String;
 /// A `META-INF/mods.toml` file.
 /// Contains metadata about a forge mod.
 #[derive(Debug)]
-pub struct ModsToml {
+pub struct ForgeManifest {
     pub mods: Vec<Mod>,
     pub dependencies: HashMap<ModId, Vec<Dependency>>,
 }

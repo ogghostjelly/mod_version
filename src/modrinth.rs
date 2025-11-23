@@ -2,16 +2,17 @@ use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+/// Modrinth modpack manifest file: `modrinth.index.json`
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct IndexJson {
+pub struct MrManifest {
     pub format_version: u64,
     pub game: String,
     pub version_id: String,
     pub name: String,
     pub summary: Option<String>,
     pub files: Vec<File>,
-    pub dependencies: Dependencies,
+    pub dependencies: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -28,16 +29,6 @@ pub struct File {
 pub struct Env {
     pub client: ProjectSupportRange,
     pub server: ProjectSupportRange,
-}
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Default)]
-#[serde(rename_all = "kebab-case")]
-pub struct Dependencies {
-    pub minecraft: Option<String>,
-    pub forge: Option<String>,
-    pub neoforge: Option<String>,
-    pub fabric_loader: Option<String>,
-    pub quilt_loader: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Eq, Debug)]
@@ -80,8 +71,8 @@ mod test {
             }
         }"#;
         assert_eq!(
-            serde_json::from_str::<IndexJson>(s).unwrap(),
-            IndexJson {
+            serde_json::from_str::<MrManifest>(s).unwrap(),
+            MrManifest {
                 format_version: 1,
                 game: "minecraft".into(),
                 version_id: "5.4.1".into(),
@@ -99,11 +90,10 @@ mod test {
                     downloads: vec!["https://cdn.modrinth.com/data/G1epq3jN/versions/gfcbMV82/advancementinfo-1.20-fabric0.83.0-1.4.jar".into()],
                     file_size: 43895
                 }],
-                dependencies: Dependencies {
-                    minecraft: Some("1.20.1".into()),
-                    fabric_loader: Some("0.14.23".into()),
-                    ..Default::default()
-                }
+                dependencies: HashMap::from_iter([
+                    ("minecraft".into(), "1.20.1".into()),
+                    ("fabric_loader".into(), "0.14.23".into()),
+                ]),
             }
         );
     }

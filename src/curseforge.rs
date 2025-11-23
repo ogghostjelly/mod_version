@@ -2,9 +2,10 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+/// Curseforge modpack manifest file: `manifest.json`
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct ManifestJson {
+pub struct CfManifest {
     pub minecraft: Minecraft,
     pub manifest_type: String,
     pub manifest_version: u64,
@@ -68,8 +69,8 @@ mod test {
             "overrides": "overrides"
         }"#;
         assert_eq!(
-            serde_json::from_str::<ManifestJson>(s).unwrap(),
-            ManifestJson {
+            serde_json::from_str::<CfManifest>(s).unwrap(),
+            CfManifest {
                 minecraft: Minecraft {
                     version: "1.20.1".into(),
                     mod_loaders: vec![ModLoader {

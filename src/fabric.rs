@@ -15,7 +15,7 @@ use crate::fabric::version::FabricVersionRange;
 /// Contains metadata about a fabric mod.
 #[derive(Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct ModJson {
+pub struct FabricManifest {
     pub schema_version: SchemaVersion,
     pub id: ModId,
     pub name: Option<String>,
@@ -188,13 +188,13 @@ mod test {
                 }
             ]
         }"#;
-        let v: ModJson = match serde_json::from_str(s) {
+        let v: FabricManifest = match serde_json::from_str(s) {
             Ok(value) => value,
             Err(e) => panic!("{e}"),
         };
         assert_eq!(
             v,
-            ModJson {
+            FabricManifest {
                 schema_version: SchemaVersion,
                 id: ModId("examplemod".into()),
                 name: Some("Example Mod".into()),
