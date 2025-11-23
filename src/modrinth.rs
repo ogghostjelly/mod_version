@@ -70,17 +70,25 @@ mod test {
                 "fabric-loader": "0.14.23"
             }
         }"#;
+        let MrManifest {
+            format_version,
+            game,
+            version_id,
+            name,
+            summary,
+            files,
+            dependencies,
+        } = serde_json::from_str::<MrManifest>(s).unwrap();
+
+        assert_eq!(format_version, 1);
+        assert_eq!(game, "minecraft");
+        assert_eq!(version_id, "5.4.1");
+        assert_eq!(name, "Fabulously Optimized");
         assert_eq!(
-            serde_json::from_str::<MrManifest>(s).unwrap(),
-            MrManifest {
-                format_version: 1,
-                game: "minecraft".into(),
-                version_id: "5.4.1".into(),
-                name: "Fabulously Optimized".into(),
-                summary: Some(
-                    "Improve your graphics and performance with this simple modpack.".into()
-                ),
-                files: vec![File {
+            summary,
+            Some("Improve your graphics and performance with this simple modpack.".into())
+        );
+        assert_eq!(files, vec![File {
                     path: "mods/advancementinfo-1.20-fabric0.83.0-1.4.jar".into(),
                     hashes: HashMap::from([
                         ("sha1".into(), "dfa603a2db09d6e303dd2991f016550ae156e3d1".into()),
@@ -89,12 +97,13 @@ mod test {
                     env: None,
                     downloads: vec!["https://cdn.modrinth.com/data/G1epq3jN/versions/gfcbMV82/advancementinfo-1.20-fabric0.83.0-1.4.jar".into()],
                     file_size: 43895
-                }],
-                dependencies: HashMap::from_iter([
-                    ("minecraft".into(), "1.20.1".into()),
-                    ("fabric_loader".into(), "0.14.23".into()),
-                ]),
-            }
+                }]);
+        assert_eq!(
+            dependencies,
+            HashMap::from_iter([
+                ("minecraft".into(), "1.20.1".into()),
+                ("fabric-loader".into(), "0.14.23".into()),
+            ])
         );
     }
 }
