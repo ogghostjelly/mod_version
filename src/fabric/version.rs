@@ -247,9 +247,7 @@ impl FabricVersion {
     pub fn parse(s: &str, allow_wildcards: bool) -> Result<Self> {
         match SemVer::parse(s, allow_wildcards) {
             Ok(value) => Ok(Self(FabricVersionIn::SemVer(value))),
-            Err(Error::Empty | Error::ParseInt(_)) => {
-                Ok(Self(FabricVersionIn::String(s.to_string())))
-            }
+            Err(Error::Empty) => Ok(Self(FabricVersionIn::String(s.to_string()))),
             Err(e) => Err(e),
         }
     }
