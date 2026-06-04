@@ -147,7 +147,7 @@ impl<'de> Deserialize<'de> for FabricVersion {
             where
                 E: de::Error,
             {
-                FabricVersion::parse(v, false).map_err(E::custom)
+                Ok(FabricVersion::parse(v, false))
             }
         }
 

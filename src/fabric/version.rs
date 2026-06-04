@@ -191,7 +191,7 @@ impl FabricVersionTerm {
             return Ok(value);
         }
 
-        Ok(FabricVersionTerm::Equal(FabricVersion::parse(s, true)?))
+        Ok(FabricVersionTerm::Equal(FabricVersion::parse(s, true)))
     }
 
     fn parse_eq(
@@ -200,7 +200,7 @@ impl FabricVersionTerm {
         op: impl Fn(FabricVersion) -> FabricVersionTerm,
     ) -> Result<Option<FabricVersionTerm>> {
         match s.strip_prefix(symbol) {
-            Some(s) => Ok(Some(op(FabricVersion::parse(s, true)?))),
+            Some(s) => Ok(Some(op(FabricVersion::parse(s, true)))),
             None => Ok(None),
         }
     }
@@ -232,10 +232,10 @@ impl fmt::Display for FabricVersionTerm {
 }
 
 /// A version used by Fabric mods.
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct FabricVersion(FabricVersionIn);
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 enum FabricVersionIn {
     SemVer(SemVer),
     String(String),
@@ -244,11 +244,10 @@ enum FabricVersionIn {
 impl FabricVersion {
     /// Try parse a string as [`SemVer`] or fallback to a string.
     /// `allow_wildcards` allows forms such as `1.x` or `1.*` to be used.
-    pub fn parse(s: &str, allow_wildcards: bool) -> Result<Self> {
+    pub fn parse(s: &str, allow_wildcards: bool) -> Self {
         match SemVer::parse(s, allow_wildcards) {
-            Ok(value) => Ok(Self(FabricVersionIn::SemVer(value))),
-            Err(Error::Empty) => Ok(Self(FabricVersionIn::String(s.to_string()))),
-            Err(e) => Err(e),
+            Ok(value) => Self(FabricVersionIn::SemVer(value)),
+            Err(_) => Self(FabricVersionIn::String(s.to_string())),
         }
     }
 }
@@ -281,7 +280,7 @@ impl fmt::Display for FabricVersion {
 
 /// An extended version of SemVer.
 /// See also [`FabricVersion`].
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct SemVer {
     components: Vec<u64>,
     prerelease: Option<Vec<PrereleaseComponent>>,
@@ -416,7 +415,7 @@ impl SemVer {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 enum PrereleaseComponent {
     Number(u64),
     String(String),
